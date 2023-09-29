@@ -7,7 +7,7 @@
         },
         "resourceGroupName": {
             "value": "${AZURE_RESOURCE_GROUP}"
-        },        
+        },
         "location": {
             "value": "${AZURE_LOCATION}"
         },
@@ -71,7 +71,7 @@
         "formRecognizerSkuName": {
             "value": "S0"
         },
-        "keyVaultName":{
+        "keyVaultName": {
             "value": "${AZURE_KEYVAULT_NAME}"
         },
         "searchServiceName": {
@@ -91,6 +91,9 @@
         },
         "storageResourceGroupName": {
             "value": "${AZURE_STORAGE_RESOURCE_GROUP}"
+        },
+        "storageContainerName": {
+            "value": "${AZURE_STORAGE_CONTAINER}"
         }
     }
 }

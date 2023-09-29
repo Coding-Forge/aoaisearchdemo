@@ -26,6 +26,8 @@ param searchIndexName string = 'gptkbindex'
 param storageAccountName string = ''
 param storageResourceGroupName string = ''
 param storageResourceGroupLocation string = location
+//param storageContainerName string = ''
+// this container name is hard coded so you cannot change it without modify the storage container name in the backend app 
 param storageContainerName string = 'content'
 
 //param openAiServiceName string = ''
@@ -40,7 +42,7 @@ param openAiResourceGroupName string = ''
 //param classifierGptModelName string = ''
 //param classifierGptModelVersion string = ''
 //param embeddingsGptDeploymentName string = ''
-param embeddingsGptModelName string = ''
+//param embeddingsGptModelName string = ''
 //param embeddingsGptModelVersion string = ''
 //param embeddingsApiVersion string = '2023-03-15-preview'
 param embeddingsTokenLimit string = ''
@@ -744,5 +746,4 @@ module dataServiceUri 'core/keyvault/keyvault-secret.bicep' = {
   ]
 }
 
-output KEYVAULT_NAME string = keyVault.outputs.name
 output AZURE_RESOURCE_GROUP string = resourceGroup.name

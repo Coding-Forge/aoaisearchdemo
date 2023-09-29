@@ -29,6 +29,11 @@ from azure.storage.blob import BlobServiceClient
 from typing import List
 from pypdf import PdfReader, PdfWriter
 
+open_ai_token_cache = {}
+CACHE_KEY_TOKEN_CRED = 'openai_token_cred'
+CACHE_KEY_CREATED_TIME = 'created_time'
+CACHE_KEY_TOKEN_TYPE = 'token_type'
+
 parser = argparse.ArgumentParser(
     description="Prepare documents by extracting content from PDFs, splitting content into sections, uploading to blob storage, and indexing in a search index.",
     epilog="Example: prepdocs.py '..\data\*' --storageaccount myaccount --container mycontainer --searchservice mysearch --index myindex -v"
@@ -61,13 +66,17 @@ parser.add_argument("--formrecognizerkey", required=False,
                     help="Optional. Use this Azure Form Recognizer account key instead of the current user identity to login (use az login to set current user for Azure)")
 parser.add_argument("--skipvectorization", help="Skip vectorization of document content")
 parser.add_argument("--openAIService", required=False, help="Azure OpenAI service resource name")
-parser.add_argument("--openAIKey", required=False, help="OpenAI API key")
-parser.add_argument("--openAIEngine", required=False, help="OpenAI embeddings model engine name")
-parser.add_argument("--openAITokenLimit", required=False, help="The max token limit for requests to the specidied OpenAI embeddings model")
-parser.add_argument("--openAIDimensions", required=False,
-                    help="The max number of dimensions allowed for an embeddings request to the specified OpenAI model")
+parser.add_argument("--openaikey", required=False, help="Optional. Use this Azure OpenAI account key instead of the current user identity to login (use az login to set current user for Azure)")
+#parser.add_argument("--openAIEngine", required=False, help="OpenAI embeddings model engine name")
+parser.add_argument("--openaiengine", required=False, help="Optional. OpenAI embeddings model engine name")
+#parser.add_argument("--openAITokenLimit", required=False, help="The max token limit for requests to the specidied OpenAI embeddings model")
+parser.add_argument("--openaitokenlimit", required=False, help="Optional. The max token limit for requests to the specidied OpenAI embeddings model")
+parser.add_argument("--openaidimensions", required=False, help="Optional. The max number of dimensions allowed for an embeddings request to the specified OpenAI model")
+#parser.add_argument("--openAIDimensions", required=False, help="The max number of dimensions allowed for an embeddings request to the specified OpenAI model")
 parser.add_argument("--verbose", "-v", action="store_true", help="Verbose output")
 args = parser.parse_args()
+
+print(f'this is the open api key {args.openaikey}')
 
 # Use the current user identity to connect to Azure services unless a key is explicitly set for any of them
 azd_credential = AzureDeveloperCliCredential() if args.tenantid == None else AzureDeveloperCliCredential(
@@ -206,7 +215,7 @@ def get_document_text(filename):
     return page_map
 
 def chunk_content(content):
-    token_limit = int(args.openAITokenLimit)
+    token_limit = int(args.openaitokenlimit)
     enc = tiktoken.encoding_for_model("gpt-4")
     tokenized_content = enc.encode(content)
     section_chunks: List[str] = []
@@ -230,10 +239,14 @@ def chunk_content(content):
     return section_chunks
 
 def vectorize_content(content):
-    openai.api_base = f"https://{args.openAIService}.openai.azure.com"
-    openai.api_key = args.openAIKey
-    response = openai.Embedding.create(engine=args.openAIEngine, input=content)
-    return response['data'][0]['embedding']
+    try:
+        openai.api_base = f"https://{args.openAIService}.openai.azure.com"
+        openai.api_key = args.openaikey    
+        response = openai.Embedding.create(engine=args.openaiengine, input=content)
+        return response['data'][0]['embedding']
+    except Exception as e:
+        print(f"Error occured here: {e}")
+        raise
 
 def create_sections(filename, page_map):
     for i, (pagenum, _, section) in enumerate(page_map):
@@ -269,7 +282,7 @@ def create_search_index():
                 SimpleField(name="id", type="Edm.String", key=True),
                 SearchableField(name="content", type="Edm.String", analyzer_name="en.microsoft"),
                 SearchField(name="contentVector", type=SearchFieldDataType.Collection(SearchFieldDataType.Single),
-                    searchable=True, vector_search_dimensions=args.openAIDimensions, vector_search_configuration="default"),
+                    searchable=True, vector_search_dimensions=args.openaidimensions, vector_search_configuration="default"),
                 SimpleField(name="category", type="Edm.String", filterable=True, facetable=True),
                 SimpleField(name="sourcepage", type="Edm.String", filterable=True, facetable=True),
                 SimpleField(name="sourcefile", type="Edm.String", filterable=True, facetable=True)

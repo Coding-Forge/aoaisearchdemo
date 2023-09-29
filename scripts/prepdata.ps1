@@ -10,11 +10,24 @@ foreach ($line in $output) {
   [Environment]::SetEnvironmentVariable($name, $value)
 }
 
-$keyVaultName = $env:KEYVAULT_NAME
+$keyVaultName = $env:AZURE_KEYVAULT_NAME
+$tenant_id = $env:AZURE_TENANT_ID
+$subscription_id = $env:AZURE_SUBSCRIPTION_ID
+$openai_api_key=$env:AZURE_OPENAI_API_KEY
+$openai_service=$env:AZURE_OPENAI_SERVICE
+$search_index=$env:AZURE_SEARCH_INDEX
+$skip_vectorization=$env:SEARCH_SKIP_VECTORIZATION
+$dimensions=$env:AZURE_OPENAI_EMBEDDINGS_DIMENSIONS
 
 Write-Host ""
 Write-Host "Fetching secrets from Azure Key Vault '$keyVaultName'..."
+Write-Host "This is the tenant ID: $tenant_id"
+write-host "This is the subscription ID: $subscription_id"
+Write-Host "This is the dimensions: $dimensions"
 Write-Host ""
+
+
+Connect-AzAccount -Tenant $tenant_id -SubscriptionId $subscription_id
 
 # Install required Azure modules if not already installed
 if (-not (Get-Module -Name Az.KeyVault -ListAvailable)) {
@@ -76,15 +89,17 @@ $predocsArguments = "./scripts/indexing/prepdocs.py", "./data/surface_device_doc
   "--storageaccount", $env:AZURE_STORAGE_ACCOUNT,
   "--container", $env:AZURE_STORAGE_CONTAINER, 
   "--searchservice", $env:AZURE_SEARCH_SERVICE, 
-  "--index", $env:AZURE_SEARCH_INDEX, 
+  "--index", $search_index, 
   "--formrecognizerservice", $env:AZURE_FORMRECOGNIZER_SERVICE,
-  "--skipvectorization", $env:SEARCH_SKIP_VECTORIZATION,
-  "--openAIService", $env:AZURE_OPENAI_EMBEDDINGS_SERVICE,
-  "--openAIKey", $env:AZURE_OPENAI_EMBEDDINGS_API_KEY,
-  "--openAIEngine", $env:AZURE_OPENAI_EMBEDDINGS_ENGINE_NAME,
-  "--openAITokenLimit", $env:AZURE_OPENAI_EMBEDDINGS_TOKEN_LIMIT,
-  "--openAIDimensions", $env:AZURE_OPENAI_EMBEDDINGS_DIMENSIONS,
+  "--skipvectorization", $skip_vectorization,
+  "--openAIService", $openai_service,
+  "--openaikey", $openai_api_key,
+  "--openaiengine", $env:AZURE_OPENAI_EMBEDDINGS_DEPLOYMENT,
+  "--openaitokenlimit", $env:AZURE_OPENAI_EMBEDDINGS_TOKEN_LIMIT,
+  "--openaidimensions", $dimensions,
   "-v"
+  
+
 $process = Start-Process -FilePath $venvPythonPath -ArgumentList $predocsArguments -Wait -NoNewWindow -PassThru
 
 if ($process.ExitCode -ne 0) {
