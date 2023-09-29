@@ -747,3 +747,4 @@ module dataServiceUri 'core/keyvault/keyvault-secret.bicep' = {
 }
 
 output AZURE_RESOURCE_GROUP string = resourceGroup.name
+output SQL_CONNECTION_STRING string = sql.outputs.sqlServerName

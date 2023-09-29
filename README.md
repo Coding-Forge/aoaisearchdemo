@@ -187,6 +187,22 @@ Once in the web app:
 * Explore citations and sources
 * Click on "settings" to try distinct roles, search options, etc.
 
+## Using Ubuntu to deploy  
+The following must be installed on your computer when using the PYODBC python package
+1. unixodbc
+2. The drivers for SQL Server.
+
+you can install the uixodbc using the following commands
+```
+sudo apt install unixodbc
+
+chmod +x install_odbc_ubuntu.sh
+
+./install_odbc_ubuntu.sh
+
+```
+
+
 ## Fine-tuning
 
 You can find helpful resources on how to fine-tune a model on the Azure OpenAI website. We have also provided synthetic datasets we used for this demo application in the data folder for users who want to try it out.

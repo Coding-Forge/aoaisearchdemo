@@ -1,5 +1,5 @@
 import argparse
-import pyodbc
+#import pyodbc
 from azure.core.exceptions import HttpResponseError
 from azure.identity import AzureDeveloperCliCredential
 from azure.mgmt.sql import SqlManagementClient
@@ -7,6 +7,8 @@ from azure.mgmt.sql.models import FirewallRule
 import pandas as pd
 from requests import get
 from time import sleep
+
+import pyodbc
 
 parser = argparse.ArgumentParser(
     description="pre-populate SQL Database with required starter data.",
